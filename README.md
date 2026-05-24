@@ -37,6 +37,26 @@ begin
 end.
 ```
 
+## ⚡️ Quickstart Delphi (v3)
+
+```delphi
+uses Gravatar4d;
+
+var
+  GravatarV3: TGravatar4DV3;
+  AvatarUrl: string;
+
+begin
+  GravatarV3:= TGravatar4DV3.Create;
+  try
+    AvatarUrl:= GravatarV3.GenerateAvatarUrl('user@email.com');
+  finally
+    FreeAndNil(GravatarV3);
+  end;
+
+end.
+```
+
 ## Delphi Versions
 
 `Gravatar4Delphi` works with Delphi 11 Alexandria, Delphi 10.4 Sydney, Delphi 10.3 Rio, Delphi 10.2 Tokyo, Delphi 10.1 Berlin, Delphi 10 Seattle, Delphi XE8 and Delphi XE7.
