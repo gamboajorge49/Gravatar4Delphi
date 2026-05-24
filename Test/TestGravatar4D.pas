@@ -21,18 +21,40 @@ type
   TestTGravatar4D = class(TTestCase)
   strict private
     FGravatar4D: TGravatar4D;
+    FGravatar4DV3: TGravatar4DV3;
   public
     procedure SetUp; override;
     procedure TearDown; override;
     procedure _InternalTestEmailNotInformed;
     procedure _InternalTestEmailInvalid;
+    procedure _InternalTestV3ProfileEmailNotInformed;
+    procedure _InternalTestV3ProfileEmailInvalid;
+    procedure _InternalTestV3ProfileIdentifierNotInformed;
+    procedure _InternalTestV3AvatarEmailNotInformed;
+    procedure _InternalTestV3AvatarEmailInvalid;
+    procedure _InternalTestV3AvatarHashNotInformed;
+    procedure _InternalTestV3QrEmailNotInformed;
+    procedure _InternalTestV3QrEmailInvalid;
+    procedure _InternalTestV3QrHashNotInformed;
   published
     procedure TestEmailToMD5;
+    procedure TestEmailToSHA256;
     procedure TestEmailNotInformed;
     procedure TestEmailInvalid;
     procedure TestGenerateUrl;
+    procedure TestGenerateAvatarUrlV3;
     procedure TestGenerateUrl_DefaultImage;
     procedure TestGenerateUrl_FullParams;
+    procedure TestV3ProfileEmailNotInformed;
+    procedure TestV3ProfileEmailInvalid;
+    procedure TestV3ProfileIdentifierNotInformed;
+    procedure TestV3AvatarEmailNotInformed;
+    procedure TestV3AvatarEmailInvalid;
+    procedure TestV3AvatarHashNotInformed;
+    procedure TestV3QrEmailNotInformed;
+    procedure TestV3QrEmailInvalid;
+    procedure TestV3QrHashNotInformed;
+    procedure TestV3ProfileModelParse;
 
   end;
 
@@ -40,13 +62,14 @@ implementation
 
 procedure TestTGravatar4D.SetUp;
 begin
-  FGravatar4D := TGravatar4D.Create;
+  FGravatar4D:= TGravatar4D.Create;
+  FGravatar4DV3:= TGravatar4DV3.Create;
 end;
 
 procedure TestTGravatar4D.TearDown;
 begin
-  FGravatar4D.Free;
-  FGravatar4D := nil;
+  FreeAndNil(FGravatar4D);
+  FreeAndNil(FGravatar4DV3);
 end;
 
 procedure TestTGravatar4D.TestEmailInvalid;
@@ -59,16 +82,128 @@ begin
   CheckException(Self._InternalTestEmailNotInformed, EGravatar4dException, 'The email was not provided.');
 end;
 
+procedure TestTGravatar4D.TestV3ProfileEmailNotInformed;
+begin
+  CheckException(Self._InternalTestV3ProfileEmailNotInformed, EGravatar4dException, 'The email was not provided.');
+end;
+
+procedure TestTGravatar4D.TestV3ProfileEmailInvalid;
+begin
+  CheckException(Self._InternalTestV3ProfileEmailInvalid, EGravatar4dException, 'The email entered has an invalid format.');
+end;
+
+procedure TestTGravatar4D.TestV3ProfileIdentifierNotInformed;
+begin
+  CheckException(Self._InternalTestV3ProfileIdentifierNotInformed, EGravatar4dException, 'Profile identifier was not provided.');
+end;
+
+procedure TestTGravatar4D.TestV3AvatarEmailNotInformed;
+begin
+  CheckException(Self._InternalTestV3AvatarEmailNotInformed, EGravatar4dException, 'The email was not provided.');
+end;
+
+procedure TestTGravatar4D.TestV3AvatarEmailInvalid;
+begin
+  CheckException(Self._InternalTestV3AvatarEmailInvalid, EGravatar4dException, 'The email entered has an invalid format.');
+end;
+
+procedure TestTGravatar4D.TestV3AvatarHashNotInformed;
+begin
+  CheckException(Self._InternalTestV3AvatarHashNotInformed, EGravatar4dException, 'SHA256 hash was not provided.');
+end;
+
+procedure TestTGravatar4D.TestV3QrEmailNotInformed;
+begin
+  CheckException(Self._InternalTestV3QrEmailNotInformed, EGravatar4dException, 'The email was not provided.');
+end;
+
+procedure TestTGravatar4D.TestV3QrEmailInvalid;
+begin
+  CheckException(Self._InternalTestV3QrEmailInvalid, EGravatar4dException, 'The email entered has an invalid format.');
+end;
+
+procedure TestTGravatar4D.TestV3QrHashNotInformed;
+begin
+  CheckException(Self._InternalTestV3QrHashNotInformed, EGravatar4dException, 'SHA256 hash was not provided.');
+end;
+
+procedure TestTGravatar4D.TestV3ProfileModelParse;
+var
+  Profile: TGravatarProfile;
+  Json: string;
+  Account: TGravatarVerifiedAccount;
+begin
+  Json:= '{ "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",' +
+    ' "display_name": "User Fake",' +
+    ' "profile_url": "https://gravatar.com/fakeuser",' +
+    ' "avatar_url": "https://1.gravatar.com/avatar/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",' +
+    ' "avatar_alt_text": "",' +
+    ' "location": "Nowhere",' +
+    ' "description": "",' +
+    ' "job_title": "QA Tester",' +
+    ' "company": "Example Inc",' +
+    ' "verified_accounts": [ { "service_type": "github", "service_label": "GitHub",' +
+    ' "service_icon": "https://gravatar.com/icons/github.svg",' +
+    ' "url": "https://github.com/fakeuser", "is_hidden": false },' +
+    ' { "service_type": "linkedin", "service_label": "LinkedIn",' +
+    ' "service_icon": "https://gravatar.com/icons/linkedin.svg",' +
+    ' "url": "https://www.linkedin.com/in/fake-user",' +
+    ' "is_hidden": false } ],' +
+    ' "pronunciation": "",' +
+    ' "pronouns": "",' +
+    ' "hide_default_header_image": false,' +
+    ' "background_color": "#123456",' +
+    ' "section_visibility": { "hidden_contact_info": false, "hidden_feeds": false,' +
+    ' "hidden_links": false, "hidden_interests": false, "hidden_wallet": false,' +
+    ' "hidden_photos": false, "hidden_verified_accounts": false } }';
+  Profile:= FGravatar4DV3.ParseProfileJson(Json);
+  try
+    CheckEquals('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', Profile.Hash, 'Profile hash');
+    CheckEquals('User Fake', Profile.DisplayName, 'Display name');
+    CheckEquals('https://gravatar.com/fakeuser', Profile.ProfileUrl, 'Profile url');
+    CheckEquals('https://1.gravatar.com/avatar/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', Profile.AvatarUrl, 'Avatar url');
+    CheckEquals('Nowhere', Profile.Location, 'Location');
+    CheckEquals('QA Tester', Profile.JobTitle, 'Job title');
+    CheckEquals('Example Inc', Profile.Company, 'Company');
+    Check(not Profile.HideDefaultHeaderImage, 'Hide default header image');
+    CheckEquals('#123456', Profile.BackgroundColor, 'Background color');
+    Check(Assigned(Profile.SectionVisibility), 'Section visibility');
+    Check(not Profile.SectionVisibility.HiddenContactInfo, 'Hidden contact info');
+    Check(not Profile.SectionVisibility.HiddenVerifiedAccounts, 'Hidden verified accounts');
+
+    Check(Assigned(Profile.VerifiedAccounts), 'Verified accounts');
+    CheckEquals(2, Profile.VerifiedAccounts.Count, 'Verified accounts count');
+    Account:= TGravatarVerifiedAccount(Profile.VerifiedAccounts[0]);
+    CheckEquals('github', Account.ServiceType, 'Account service type');
+    CheckEquals('GitHub', Account.ServiceLabel, 'Account service label');
+    CheckEquals('https://gravatar.com/icons/github.svg', Account.ServiceIcon, 'Account service icon');
+    CheckEquals('https://github.com/fakeuser', Account.Url, 'Account url');
+    Check(not Account.IsHidden, 'Account is hidden');
+  finally
+    FreeAndNil(Profile);
+  end;
+end;
+
 procedure TestTGravatar4D.TestEmailToMD5;
 var
   ReturnValue: string;
   Value: string;
 begin
-  Value := 'user@github.com';
-  ReturnValue := FGravatar4D.EmailToMD5(Value);
+  Value:= 'user@github.com';
+  ReturnValue:= FGravatar4D.EmailToMD5(Value);
   // Note
   // this test hash was generated on the website: https://www.md5hashgenerator.com
   CheckEquals('1496f7f4fd086e2d0a0460220331e9ec', ReturnValue, 'Email to MD5');
+end;
+
+procedure TestTGravatar4D.TestEmailToSHA256;
+var
+  ReturnValue: string;
+  Value: string;
+begin
+  Value:= 'user@github.com';
+  ReturnValue:= FGravatar4DV3.EmailToSHA256(Value);
+  CheckEquals('6bead517d6444c7ab46b5fbc75eb50d07dbf7bafa5766a6aae9a07e32096cbff', ReturnValue, 'Email to SHA256');
 end;
 
 procedure TestTGravatar4D.TestGenerateUrl;
@@ -76,10 +211,21 @@ var
   ReturnValue: string;
   Email: string;
 begin
-  Email := 'user@github.com';
-  ReturnValue := FGravatar4D.GenerateUrl(Email);
+  Email:= 'user@github.com';
+  ReturnValue:= FGravatar4D.GenerateUrl(Email);
   CheckEquals('https://www.gravatar.com/avatar/1496f7f4fd086e2d0a0460220331e9ec?r=g', ReturnValue,
     'Generate Url from basic parameters');
+end;
+
+procedure TestTGravatar4D.TestGenerateAvatarUrlV3;
+var
+  ReturnValue: string;
+  Email: string;
+begin
+  Email:= 'user@github.com';
+  ReturnValue:= FGravatar4DV3.GenerateAvatarUrl(Email);
+  CheckEquals('https://0.gravatar.com/avatar/6bead517d6444c7ab46b5fbc75eb50d07dbf7bafa5766a6aae9a07e32096cbff', ReturnValue,
+    'Generate Url for v3 avatar');
 end;
 
 procedure TestTGravatar4D.TestGenerateUrl_DefaultImage;
@@ -90,12 +236,12 @@ var
   GravatarDeafult: TGravatarDeafult;
   Size: Smallint;
 begin
-  Email := 'user@github.com';
-  Size := 400;
-  GravatarDeafult := gdUrlImage;
-  URLDefaultImage := 'https://learndelphi.org/wp-content/uploads/2020/06/delphi2.png';
+  Email:= 'user@github.com';
+  Size:= 400;
+  GravatarDeafult:= gdUrlImage;
+  URLDefaultImage:= 'https://learndelphi.org/wp-content/uploads/2020/06/delphi2.png';
 
-  ReturnValue := FGravatar4D.GenerateUrl(Email, Size, grG, GravatarDeafult, URLDefaultImage);
+  ReturnValue:= FGravatar4D.GenerateUrl(Email, Size, grG, GravatarDeafult, URLDefaultImage);
   CheckEquals
     ('https://www.gravatar.com/avatar/1496f7f4fd086e2d0a0460220331e9ec?r=g&s=400&d=https://learndelphi.org/wp-content/uploads/2020/06/delphi2.png',
     ReturnValue, 'Generate Url from default image parameter');
@@ -110,12 +256,12 @@ var
   Size: Smallint;
   Email: string;
 begin
-  Email := 'user@github.com';
-  Size := 200;
-  GravatarRating := grPG;
-  GravatarDeafult := gdwavatar;
+  Email:= 'user@github.com';
+  Size:= 200;
+  GravatarRating:= grPG;
+  GravatarDeafult:= gdwavatar;
 
-  ReturnValue := FGravatar4D.GenerateUrl(Email, Size, GravatarRating, GravatarDeafult);
+  ReturnValue:= FGravatar4D.GenerateUrl(Email, Size, GravatarRating, GravatarDeafult);
 
   CheckEquals('https://www.gravatar.com/avatar/1496f7f4fd086e2d0a0460220331e9ec?r=pg&s=200&d=wavatar', ReturnValue,
     'Generate Url from full parameters')
@@ -130,6 +276,51 @@ end;
 procedure TestTGravatar4D._InternalTestEmailNotInformed;
 begin
   FGravatar4D.GravatarImage('')
+end;
+
+procedure TestTGravatar4D._InternalTestV3ProfileEmailNotInformed;
+begin
+  FGravatar4DV3.GetProfileJsonByEmail('');
+end;
+
+procedure TestTGravatar4D._InternalTestV3ProfileEmailInvalid;
+begin
+  FGravatar4DV3.GetProfileJsonByEmail('email@gmail.');
+end;
+
+procedure TestTGravatar4D._InternalTestV3ProfileIdentifierNotInformed;
+begin
+  FGravatar4DV3.GetProfileJsonByIdentifier('');
+end;
+
+procedure TestTGravatar4D._InternalTestV3AvatarEmailNotInformed;
+begin
+  FGravatar4DV3.GetAvatarImageByEmail('');
+end;
+
+procedure TestTGravatar4D._InternalTestV3AvatarEmailInvalid;
+begin
+  FGravatar4DV3.GetAvatarImageByEmail('email@gmail.');
+end;
+
+procedure TestTGravatar4D._InternalTestV3AvatarHashNotInformed;
+begin
+  FGravatar4DV3.GetAvatarImageByHash('');
+end;
+
+procedure TestTGravatar4D._InternalTestV3QrEmailNotInformed;
+begin
+  FGravatar4DV3.GetQrCodeImageByEmail('');
+end;
+
+procedure TestTGravatar4D._InternalTestV3QrEmailInvalid;
+begin
+  FGravatar4DV3.GetQrCodeImageByEmail('email@gmail.');
+end;
+
+procedure TestTGravatar4D._InternalTestV3QrHashNotInformed;
+begin
+  FGravatar4DV3.GetQrCodeImageByHash('');
 end;
 
 initialization
