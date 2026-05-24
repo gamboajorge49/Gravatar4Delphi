@@ -10,6 +10,7 @@ uses
   Vcl.Graphics,
   Vcl.Dialogs,
   Vcl.Imaging.pngimage,
+  Vcl.Imaging.jpeg,
   IdUri,
   IdHashMessageDigest,
   REST.Types, REST.Client, Data.Bind.Components,
@@ -36,7 +37,7 @@ type
     function DownloadImage(const Url: string): TPicture;
     function EmailIsValid(const AEmail: string): Boolean;
   public
-    constructor Create;
+    constructor Create; reintroduce;
 
     function EmailToMD5(const Value: string): string;
 
@@ -67,6 +68,7 @@ end;
 
 constructor TGravatar4D.Create;
 begin
+  inherited Create(nil);
   FGravatarRating := grG;
 end;
 
@@ -76,7 +78,6 @@ var
   RESTRequest: TRESTRequest;
   RESTResponse: TRESTResponse;
   MS: TMemoryStream;
-  png: TPngImage;
 begin
 
   RESTClient := TRESTClient.Create(Self);
@@ -86,7 +87,6 @@ begin
   RESTRequest.Client := RESTClient;
   RESTRequest.Response := RESTResponse;
 
-  png := TPngImage.Create;
   Result := TPicture.Create;
 
   try
@@ -100,10 +100,8 @@ begin
 
     if MS.Size > 0 then
     begin
-
       MS.Position := 0;
-      png.LoadFromStream(MS);
-      Result.Bitmap.Assign(png);
+      Result.LoadFromStream(MS);
     end;
 
   finally
@@ -112,8 +110,6 @@ begin
     FreeAndNil(RESTResponse);
 
     FreeAndNil(MS);
-    FreeAndNil(png);
-
   end;
 end;
 
@@ -122,7 +118,7 @@ var
   RegEx: TRegEx;
 begin
   try
-    RegEx := TRegEx.Create('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$');
+    RegEx := TRegEx.Create('^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$', [roIgnoreCase]);
     Result := RegEx.IsMatch(AEmail);
   finally
 
@@ -132,10 +128,12 @@ end;
 function TGravatar4D.EmailToMD5(const Value: string): string;
 var
   md5: TIdHashMessageDigest5;
+  Normalized: string;
 begin
   md5 := TIdHashMessageDigest5.Create;
   try
-    Result := LowerCase(md5.HashStringAsHex(Value));
+    Normalized := LowerCase(Trim(Value));
+    Result := LowerCase(md5.HashStringAsHex(Normalized));
   finally
     md5.Free;
   end;
