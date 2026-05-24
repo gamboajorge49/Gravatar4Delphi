@@ -30,6 +30,9 @@ type
     procedure _InternalTestV3ProfileEmailNotInformed;
     procedure _InternalTestV3ProfileEmailInvalid;
     procedure _InternalTestV3ProfileIdentifierNotInformed;
+    procedure _InternalTestV3AvatarEmailNotInformed;
+    procedure _InternalTestV3AvatarEmailInvalid;
+    procedure _InternalTestV3AvatarHashNotInformed;
     procedure _InternalTestV3QrEmailNotInformed;
     procedure _InternalTestV3QrEmailInvalid;
     procedure _InternalTestV3QrHashNotInformed;
@@ -45,6 +48,9 @@ type
     procedure TestV3ProfileEmailNotInformed;
     procedure TestV3ProfileEmailInvalid;
     procedure TestV3ProfileIdentifierNotInformed;
+    procedure TestV3AvatarEmailNotInformed;
+    procedure TestV3AvatarEmailInvalid;
+    procedure TestV3AvatarHashNotInformed;
     procedure TestV3QrEmailNotInformed;
     procedure TestV3QrEmailInvalid;
     procedure TestV3QrHashNotInformed;
@@ -89,6 +95,21 @@ end;
 procedure TestTGravatar4D.TestV3ProfileIdentifierNotInformed;
 begin
   CheckException(Self._InternalTestV3ProfileIdentifierNotInformed, EGravatar4dException, 'Profile identifier was not provided.');
+end;
+
+procedure TestTGravatar4D.TestV3AvatarEmailNotInformed;
+begin
+  CheckException(Self._InternalTestV3AvatarEmailNotInformed, EGravatar4dException, 'The email was not provided.');
+end;
+
+procedure TestTGravatar4D.TestV3AvatarEmailInvalid;
+begin
+  CheckException(Self._InternalTestV3AvatarEmailInvalid, EGravatar4dException, 'The email entered has an invalid format.');
+end;
+
+procedure TestTGravatar4D.TestV3AvatarHashNotInformed;
+begin
+  CheckException(Self._InternalTestV3AvatarHashNotInformed, EGravatar4dException, 'SHA256 hash was not provided.');
 end;
 
 procedure TestTGravatar4D.TestV3QrEmailNotInformed;
@@ -270,6 +291,21 @@ end;
 procedure TestTGravatar4D._InternalTestV3ProfileIdentifierNotInformed;
 begin
   FGravatar4DV3.GetProfileJsonByIdentifier('');
+end;
+
+procedure TestTGravatar4D._InternalTestV3AvatarEmailNotInformed;
+begin
+  FGravatar4DV3.GetAvatarImageByEmail('');
+end;
+
+procedure TestTGravatar4D._InternalTestV3AvatarEmailInvalid;
+begin
+  FGravatar4DV3.GetAvatarImageByEmail('email@gmail.');
+end;
+
+procedure TestTGravatar4D._InternalTestV3AvatarHashNotInformed;
+begin
+  FGravatar4DV3.GetAvatarImageByHash('');
 end;
 
 procedure TestTGravatar4D._InternalTestV3QrEmailNotInformed;

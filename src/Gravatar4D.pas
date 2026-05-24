@@ -91,7 +91,8 @@ type
     function BuildQrCodeResource(const Sha256Hash: string; const Size: Smallint; const Version: Smallint; const IconType: string): string;
     function ExecuteJsonGet(const BaseUrl: string; const Resource: string; const ApiKey: string): string;
   public
-    constructor Create; reintroduce;
+    constructor Create(AOwner: TComponent); override;
+    constructor Create; reintroduce; overload;
 
     function EmailToSHA256(const Value: string): string;
     function GenerateAvatarUrl(const Email: string): string;
@@ -300,9 +301,14 @@ end;
 
 { TGravatar4DV3 }
 
+constructor TGravatar4DV3.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+end;
+
 constructor TGravatar4DV3.Create;
 begin
-  inherited Create(nil);
+  Create(nil);
 end;
 
 function TGravatar4DV3.DownloadImage(const Url: string): TPicture;
@@ -580,9 +586,9 @@ var
     if AObj = nil
     then EXIT('');
     V:= AObj.Values[Name];
-    if Assigned(V)
+    if V is TJSONString
     then
-      Result:= V.Value;
+      Result:= TJSONString(V).Value;
   end;
   function JsonGetBool(const AObj: TJSONObject; const Name: string): Boolean;
   var

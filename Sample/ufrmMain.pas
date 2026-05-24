@@ -75,7 +75,7 @@ begin
     except
       on E: EGravatar4dException do
       begin
-        ShowMessage('Unable to locate the Gravatar for the email.' + sLineBreak + 'Original message:' + E.Message);
+        ShowMessage('Unable to locate the Gravatar for the email.' + sLineBreak + 'Original message: ' + E.Message);
       end;
       on E: Exception do
       begin
@@ -103,7 +103,7 @@ begin
     except
       on E: EGravatar4dException do
       begin
-        ShowMessage('Unable to locate the Gravatar profile.' + sLineBreak + 'Original message:' + E.Message);
+        ShowMessage('Unable to locate the Gravatar profile.' + sLineBreak + 'Original message: ' + E.Message);
       end;
       on E: Exception do
       begin
@@ -130,7 +130,7 @@ begin
     except
       on E: EGravatar4dException do
       begin
-        ShowMessage('Unable to generate the Gravatar QR code.' + sLineBreak + 'Original message:' + E.Message);
+        ShowMessage('Unable to generate the Gravatar QR code.' + sLineBreak + 'Original message: ' + E.Message);
       end;
       on E: Exception do
       begin
@@ -205,4 +205,3 @@ begin
 end;
 
 end.
-
