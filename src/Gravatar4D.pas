@@ -91,7 +91,7 @@ type
     function BuildQrCodeResource(const Sha256Hash: string; const Size: Smallint; const Version: Smallint; const IconType: string): string;
     function ExecuteJsonGet(const BaseUrl: string; const Resource: string; const ApiKey: string): string;
   public
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); overload; override;
     constructor Create; reintroduce; overload;
 
     function EmailToSHA256(const Value: string): string;
