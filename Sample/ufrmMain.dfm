@@ -23,8 +23,8 @@ object Form1: TForm1
     Caption = 'pnlMain'
     ShowCaption = False
     TabOrder = 0
-    ExplicitWidth = 622
-    ExplicitHeight = 332
+    ExplicitWidth = 717
+    ExplicitHeight = 400
     object Image1: TImage
       AlignWithMargins = True
       Left = 295
@@ -45,7 +45,7 @@ object Form1: TForm1
       Height = 402
       Align = alLeft
       TabOrder = 0
-      ExplicitHeight = 326
+      ExplicitHeight = 394
       object Label1: TLabel
         Left = 9
         Top = 209
@@ -116,23 +116,23 @@ object Form1: TForm1
         TabOrder = 11
         OnClick = btnQrCodeV3Click
       end
-      object CheckBox1: TCheckBox
+      object chkCenter: TCheckBox
         Left = 177
         Top = 190
         Width = 97
         Height = 17
         Caption = 'Center'
         TabOrder = 6
-        OnClick = CheckBox1Click
+        OnClick = chkCenterClick
       end
-      object chStretch: TCheckBox
+      object chkStretch: TCheckBox
         Left = 177
         Top = 227
         Width = 97
         Height = 17
         Caption = 'Stretch'
         TabOrder = 8
-        OnClick = chStretchClick
+        OnClick = chkStretchClick
       end
       object SpinEdit1: TSpinEdit
         Left = 9
@@ -142,7 +142,7 @@ object Form1: TForm1
         MaxValue = 99999
         MinValue = 80
         TabOrder = 7
-        Value = 80
+        Value = 520
       end
       object cbDefault: TComboBox
         Left = 9
