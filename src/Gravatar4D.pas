@@ -115,7 +115,6 @@ const
   URL_BASE_V3_AVATAR: string = 'https://0.gravatar.com/avatar/';
   URL_API_V3_BASE: string = 'https://api.gravatar.com';
   URL_API_V3_PATH: string = 'v3';
-  URL_API_V3: string = 'https://api.gravatar.com/v3';
 
 implementation
 
