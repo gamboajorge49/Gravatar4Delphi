@@ -85,6 +85,7 @@ type
   private
     function DownloadImage(const Url: string): TPicture;
     function DownloadImageByRequest(const BaseUrl: string; const Resource: string): TPicture;
+    function ResponseToPicture(const AResponse: TRESTResponse): TPicture;
     function EmailIsValid(const AEmail: string): Boolean;
     function BuildProfileResourceByIdentifier(const Identifier: string): string;
     function BuildQrCodeResource(const Sha256Hash: string; const Size: Smallint; const Version: Smallint; const IconType: string): string;
@@ -305,43 +306,38 @@ begin
 end;
 
 function TGravatar4DV3.DownloadImage(const Url: string): TPicture;
+begin
+  Result:= DownloadImageByRequest(Url, '');
+end;
+
+function TGravatar4DV3.ResponseToPicture(const AResponse: TRESTResponse): TPicture;
 var
-  RESTClient: TRESTClient;
-  RESTRequest: TRESTRequest;
-  RESTResponse: TRESTResponse;
   MS: TMemoryStream;
   ContentType: string;
 begin
-  Result := nil;
-  MS := nil;
-  RESTClient := TRESTClient.Create(Self);
-  RESTRequest := TRESTRequest.Create(Self);
-  RESTResponse := TRESTResponse.Create(Self);
-
-  RESTRequest.Client := RESTClient;
-  RESTRequest.Response := RESTResponse;
-
+  Result:= nil;
+  MS:= nil;
   try
+    if (AResponse.StatusCode < 200) or (AResponse.StatusCode >= 300)
+    then
+      raise EGravatar4dException.Create(Format('Failed to download Gravatar image. HTTP status: %d.', [AResponse.StatusCode]), '');
 
-    RESTClient.BaseURL := Url;
-    RESTRequest.Execute;
+    ContentType:= LowerCase(Trim(AResponse.ContentType));
+    if (ContentType <> '') and (Pos('image/', ContentType) <> 1)
+    then
+      raise EGravatar4dException.Create(Format('Unexpected content type: %s.', [AResponse.ContentType]), '');
 
-    if (RESTResponse.StatusCode < 200) or (RESTResponse.StatusCode >= 300) then
-      raise EGravatar4dException.Create(Format('Failed to download Gravatar image. HTTP status: %d.', [RESTResponse.StatusCode]), '');
+    MS:= TMemoryStream.Create;
+    if Length(AResponse.RawBytes) > 0
+    then
+      MS.WriteData(AResponse.RawBytes, Length(AResponse.RawBytes));
+    MS.Position:= 0;
 
-    ContentType := LowerCase(Trim(RESTResponse.ContentType));
-    if (ContentType <> '') and (Pos('image/', ContentType) <> 1) then
-      raise EGravatar4dException.Create(Format('Unexpected content type: %s.', [RESTResponse.ContentType]), '');
-
-    MS := TMemoryStream.Create;
-    if Length(RESTResponse.RawBytes) > 0 then
-      MS.WriteData(RESTResponse.RawBytes, Length(RESTResponse.RawBytes));
-    MS.Position := 0;
-
-    if MS.Size > 0 then
+    if MS.Size > 0
+    then
     begin
-      MS.Position := 0;
-      Result := TPicture.Create;
+      MS.Position:= 0;
+      Result:= TPicture.Create;
       try
         Result.LoadFromStream(MS);
       except
@@ -351,12 +347,7 @@ begin
     end
     else
       raise EGravatar4dException.Create('Empty response from Gravatar.', '');
-
   finally
-    FreeAndNil(RESTClient);
-    FreeAndNil(RESTRequest);
-    FreeAndNil(RESTResponse);
-
     FreeAndNil(MS);
   end;
 end;
@@ -378,25 +369,20 @@ var
   RESTClient: TRESTClient;
   RESTRequest: TRESTRequest;
   RESTResponse: TRESTResponse;
-  MS: TMemoryStream;
-  ContentType: string;
   RequestUrl: string;
   ResourcePath: string;
 begin
   Result:= nil;
-  MS:= nil;
   RequestUrl:= Trim(BaseUrl);
   if RequestUrl = ''
   then
     raise EGravatar4dException.Create('Request URL was not provided.', '');
 
   ResourcePath:= Trim(Resource);
-  if ResourcePath = ''
+  if ResourcePath <> ''
   then
-    raise EGravatar4dException.Create('Request resource was not provided.', '');
-
-  while (Length(ResourcePath) > 0) and (ResourcePath[1] = '/') do
-    Delete(ResourcePath, 1, 1);
+    while (Length(ResourcePath) > 0) and (ResourcePath[1] = '/') do
+      Delete(ResourcePath, 1, 1);
 
   if Pos('://', RequestUrl) = 0
   then
@@ -413,44 +399,12 @@ begin
     RESTClient.BaseURL:= RequestUrl;
     RESTRequest.Resource:= ResourcePath;
     RESTRequest.Execute;
-
-    if (RESTResponse.StatusCode < 200) or (RESTResponse.StatusCode >= 300)
-    then
-      raise EGravatar4dException.Create(
-        Format('Failed to download Gravatar image. HTTP status: %d.', [RESTResponse.StatusCode]), '');
-
-    ContentType:= LowerCase(Trim(RESTResponse.ContentType));
-    if (ContentType <> '') and (Pos('image/', ContentType) <> 1)
-    then
-      raise EGravatar4dException.Create(Format('Unexpected content type: %s.', [RESTResponse.ContentType]), '');
-
-    MS:= TMemoryStream.Create;
-    if Length(RESTResponse.RawBytes) > 0
-    then
-      MS.WriteData(RESTResponse.RawBytes, Length(RESTResponse.RawBytes));
-    MS.Position:= 0;
-
-    if MS.Size > 0
-    then
-    begin
-      MS.Position:= 0;
-      Result:= TPicture.Create;
-      try
-        Result.LoadFromStream(MS);
-      except
-        FreeAndNil(Result);
-        raise;
-      end;
-    end
-    else
-      raise EGravatar4dException.Create('Empty response from Gravatar.', '');
+    Result:= ResponseToPicture(RESTResponse);
 
   finally
     FreeAndNil(RESTClient);
     FreeAndNil(RESTRequest);
     FreeAndNil(RESTResponse);
-
-    FreeAndNil(MS);
   end;
 end;
 
@@ -506,7 +460,7 @@ begin
   if Normalized = '' then
     raise EGravatar4dException.Create('Profile identifier was not provided.', '');
 
-  Result:= URL_API_V3_PATH + '/profiles/' + Normalized;
+  Result:= URL_API_V3_PATH + '/profiles/' + TIdURI.PathEncode(Normalized);
 end;
 
 function TGravatar4DV3.BuildQrCodeResource(const Sha256Hash: string; const Size: Smallint; const Version: Smallint; const IconType: string): string;
@@ -616,6 +570,8 @@ var
   AccountObj: TJSONObject;
   Account: TGravatarVerifiedAccount;
   SectionObj: TJSONObject;
+  SectionValue: TJSONValue;
+  AccountsValue: TJSONValue;
   function JsonGetString(const AObj: TJSONObject; const Name: string): string;
   var
     V: TJSONValue;
@@ -671,10 +627,11 @@ begin
       Result.HideDefaultHeaderImage:= JsonGetBool(Obj, 'hide_default_header_image');
       Result.BackgroundColor:= JsonGetString(Obj, 'background_color');
 
-      SectionObj:= Obj.Values['section_visibility'] as TJSONObject;
-      if Assigned(SectionObj)
+      SectionValue:= Obj.Values['section_visibility'];
+      if SectionValue is TJSONObject
       then
       begin
+        SectionObj:= TJSONObject(SectionValue);
         Result.SectionVisibility.HiddenContactInfo:= JsonGetBool(SectionObj, 'hidden_contact_info');
         Result.SectionVisibility.HiddenFeeds:= JsonGetBool(SectionObj, 'hidden_feeds');
         Result.SectionVisibility.HiddenLinks:= JsonGetBool(SectionObj, 'hidden_links');
@@ -684,9 +641,11 @@ begin
         Result.SectionVisibility.HiddenVerifiedAccounts:= JsonGetBool(SectionObj, 'hidden_verified_accounts');
       end;
 
-      Accounts:= Obj.Values['verified_accounts'] as TJSONArray;
-      if Assigned(Accounts)
+      AccountsValue:= Obj.Values['verified_accounts'];
+      if AccountsValue is TJSONArray
       then
+      begin
+        Accounts:= TJSONArray(AccountsValue);
         for AccountValue in Accounts do
         begin
           if AccountValue is TJSONObject
@@ -702,6 +661,7 @@ begin
             Result.VerifiedAccounts.Add(Account);
           end;
         end;
+      end;
     except
       FreeAndNil(Result);
       raise;

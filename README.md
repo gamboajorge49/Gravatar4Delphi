@@ -19,7 +19,9 @@ boss install github.com/gamboajorge49/Gravatar4Delphi.git
 ## ⚡️ Quickstart Delphi
 
 ```delphi
-uses Gravatar4d;
+uses
+  System.SysUtils,
+  Gravatar4d;
 
 var
   Gravatar: TGravatar4D;
@@ -40,7 +42,9 @@ end.
 ## ⚡️ Quickstart Delphi (v3)
 
 ```delphi
-uses Gravatar4d;
+uses
+  System.SysUtils,
+  Gravatar4d;
 
 var
   GravatarV3: TGravatar4DV3;
