@@ -545,7 +545,7 @@ begin
     IconValue:= Trim(IconType);
     if IconValue <> ''
     then
-      sb.Append(Prefix + 'type=' + IconValue);
+      sb.Append(Prefix + 'type=' + TIdURI.ParamsEncode(IconValue));
 
     Result:= sb.ToString;
   finally
